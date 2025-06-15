@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>多店铺商品管理系统 - GitHub同步版</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #4361ee;
@@ -103,6 +103,7 @@
             display: flex;
             justify-content: center;
             gap: 15px;
+            flex-wrap: wrap;
         }
         
         .auth-btn {
@@ -125,6 +126,10 @@
         
         .auth-btn.logout {
             background: var(--danger);
+        }
+        
+        .auth-btn.sync {
+            background: var(--success);
         }
         
         .auth-btn:hover {
@@ -539,6 +544,7 @@
             align-items: center;
             justify-content: center;
             z-index: 2000;
+            flex-direction: column;
             display: none;
         }
         
@@ -561,6 +567,40 @@
             padding: 20px;
             color: var(--gray);
             font-size: 0.9rem;
+        }
+        
+        .token-input-section {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        
+        .token-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        
+        .instructions {
+            background: #e9f5ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
         }
         
         @media (max-width: 768px) {
@@ -614,7 +654,7 @@
 <body>
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
-        <div style="margin-top: 20px; font-weight: 500;">正在同步数据...</div>
+        <div style="margin-top: 20px; font-weight: 500;" id="loadingText">正在同步数据...</div>
     </div>
     
     <div class="container">
@@ -634,10 +674,13 @@
             
             <div class="auth-section" id="authSection">
                 <button class="auth-btn github" id="githubLogin">
-                    <i class="fab fa-github"></i> 使用GitHub登录
+                    <i class="fab fa-github"></i> 使用GitHub同步
                 </button>
                 <button class="auth-btn logout" id="logoutBtn" style="display: none;">
-                    <i class="fas fa-sign-out-alt"></i> 退出登录
+                    <i class="fas fa-sign-out-alt"></i> 退出同步
+                </button>
+                <button class="auth-btn sync" id="syncBtn" style="display: none;">
+                    <i class="fas fa-sync-alt"></i> 立即同步
                 </button>
             </div>
             
@@ -649,9 +692,30 @@
             </div>
             
             <div class="sync-status" id="syncStatus">
-                <i class="fas fa-cloud"></i> <span id="syncMessage">未连接GitHub</span>
+                <i class="fas fa-cloud"></i> <span id="syncMessage">未连接到GitHub</span>
             </div>
         </header>
+        
+        <div id="tokenSection" class="token-input-section" style="display: none;">
+            <h3>GitHub 访问令牌</h3>
+            <input type="password" class="token-input" id="githubToken" placeholder="在此输入您的GitHub个人访问令牌">
+            <button class="auth-btn" id="saveTokenBtn">
+                <i class="fas fa-save"></i> 保存令牌
+            </button>
+            
+            <div class="instructions">
+                <p><strong>如何获取GitHub访问令牌：</strong></p>
+                <ol>
+                    <li>登录您的GitHub账号</li>
+                    <li>访问 <a href="https://github.com/settings/tokens" target="_blank">Personal Access Tokens</a></li>
+                    <li>点击"Generate new token"</li>
+                    <li>设置描述（例如："商品管理系统"）</li>
+                    <li>选择"gist"权限</li>
+                    <li>点击"Generate token"</li>
+                    <li>复制生成的令牌并粘贴到上方输入框</li>
+                </ol>
+            </div>
+        </div>
         
         <div class="tabs">
             <button class="tab-btn momo-btn active" data-tab="momo">
@@ -719,10 +783,225 @@
                 </div>
             </div>
             
-            <!-- 其他店铺页面结构类似 -->
-            <!-- 为简洁起见，此处省略了蔬菜、B&E、Mad Fresh、打包盒、Woolworth的HTML结构 -->
-            <!-- 实际实现中每个店铺页面都需要类似结构 -->
+            <!-- 蔬菜页面 -->
+            <div class="tab-content" id="vegetable-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon vegetable-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h2>蔬菜商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="vegetable-product-name" placeholder="输入商品名称">
+                    <button id="vegetable-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="vegetable-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="vegetable">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="vegetable-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="vegetable-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="vegetable">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
             
+            <!-- B&E页面 -->
+            <div class="tab-content" id="be-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon be-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h2>B&E 商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="be-product-name" placeholder="输入商品名称">
+                    <button id="be-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="be-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="be">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="be-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="be-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="be">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mad Fresh页面 -->
+            <div class="tab-content" id="madfresh-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon madfresh-icon">
+                            <i class="fas fa-apple-alt"></i>
+                        </div>
+                        <h2>Mad Fresh 商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="madfresh-product-name" placeholder="输入商品名称">
+                    <button id="madfresh-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="madfresh-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="madfresh">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="madfresh-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="madfresh-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="madfresh">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 打包盒页面 -->
+            <div class="tab-content" id="packaging-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon packaging-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h2>打包盒商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="packaging-product-name" placeholder="输入商品名称">
+                    <button id="packaging-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="packaging-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="packaging">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="packaging-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="packaging-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="packaging">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Woolworth页面 -->
+            <div class="tab-content" id="woolworth-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon woolworth-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h2>Woolworth 商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="woolworth-product-name" placeholder="输入商品名称">
+                    <button id="woolworth-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="woolworth-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="woolworth">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="woolworth-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="woolworth-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="woolworth">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="footer">
@@ -737,8 +1016,6 @@
 
     <script>
         // 配置信息
-        const CLIENT_ID = 'YOUR_GITHUB_CLIENT_ID'; // 替换为你的GitHub OAuth App Client ID
-        const REDIRECT_URI = window.location.href;
         const GIST_FILENAME = 'multi-store-data.json';
         
         // 店铺数据模型
@@ -753,38 +1030,27 @@
         
         // 全局变量
         let products = {};
-        let accessToken = localStorage.getItem('github_access_token');
+        let githubToken = localStorage.getItem('github_token');
         let gistId = localStorage.getItem('github_gist_id');
         let userInfo = JSON.parse(localStorage.getItem('github_user_info'));
         
         // DOM元素
         const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
         const notification = document.getElementById('notification');
         const githubLoginBtn = document.getElementById('githubLogin');
         const logoutBtn = document.getElementById('logoutBtn');
+        const syncBtn = document.getElementById('syncBtn');
         const userInfoSection = document.getElementById('userInfo');
         const userAvatar = document.getElementById('userAvatar');
         const userName = document.getElementById('userName');
         const syncMessage = document.getElementById('syncMessage');
+        const tokenSection = document.getElementById('tokenSection');
+        const githubTokenInput = document.getElementById('githubToken');
+        const saveTokenBtn = document.getElementById('saveTokenBtn');
         
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
-            // 检查URL中是否有授权码
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            
-            if (code) {
-                // 移除URL中的code参数
-                window.history.replaceState({}, document.title, window.location.pathname);
-                // 获取访问令牌
-                getAccessToken(code);
-            } else if (accessToken) {
-                // 已登录，加载用户信息
-                updateUserUI();
-                // 加载数据
-                loadDataFromGist();
-            }
-            
             // 初始化所有店铺
             stores.forEach(store => {
                 // 初始化内存数据
@@ -814,77 +1080,71 @@
                 });
             });
             
-            // GitHub登录按钮事件
-            githubLoginBtn.addEventListener('click', githubLogin);
+            // GitHub同步按钮事件
+            githubLoginBtn.addEventListener('click', function() {
+                tokenSection.style.display = 'block';
+                if (githubToken) {
+                    githubTokenInput.value = githubToken;
+                }
+            });
             
-            // 退出登录按钮事件
+            // 退出同步按钮事件
             logoutBtn.addEventListener('click', logout);
+            
+            // 立即同步按钮事件
+            syncBtn.addEventListener('click', saveDataToGist);
+            
+            // 保存令牌按钮事件
+            saveTokenBtn.addEventListener('click', saveToken);
             
             // GitHub仓库链接
             document.getElementById('githubLink').addEventListener('click', function(e) {
                 e.preventDefault();
                 showNotification('请将代码上传到您的GitHub仓库');
             });
+            
+            // 初始化UI状态
+            updateUI();
+            
+            // 如果有token，尝试获取用户信息
+            if (githubToken) {
+                getUserInfo();
+            }
         });
         
-        // GitHub登录
-        function githubLogin() {
-            const authUrl = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=gist`;
-            window.location.href = authUrl;
-        }
-        
-        // 获取访问令牌
-        function getAccessToken(code) {
-            showLoading();
+        // 保存GitHub令牌
+        function saveToken() {
+            const token = githubTokenInput.value.trim();
+            if (!token) {
+                showNotification('请输入GitHub访问令牌', true);
+                return;
+            }
             
-            // 在实际应用中，这里需要服务器端支持
-            // 由于GitHub要求服务器端交换令牌，这里简化处理（仅用于演示）
-            // 在实际部署时，您需要创建一个简单的服务器端点来处理令牌交换
+            githubToken = token;
+            localStorage.setItem('github_token', githubToken);
             
-            showNotification('此功能需要服务器支持，请参考文档配置后端', true);
-            hideLoading();
+            tokenSection.style.display = 'none';
+            showNotification('令牌已保存');
             
-            // 以下是模拟代码，实际应用中需要替换为您的服务器端点
-            /*
-            fetch('https://your-server.com/github-auth', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    code: code,
-                    redirect_uri: REDIRECT_URI
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.access_token) {
-                    accessToken = data.access_token;
-                    localStorage.setItem('github_access_token', accessToken);
-                    
-                    // 获取用户信息
-                    getUserInfo();
-                } else {
-                    showNotification('登录失败: ' + (data.error || '未知错误'), true);
-                    hideLoading();
-                }
-            })
-            .catch(error => {
-                console.error('获取访问令牌失败:', error);
-                showNotification('登录失败，请重试', true);
-                hideLoading();
-            });
-            */
+            // 获取用户信息
+            getUserInfo();
         }
         
         // 获取用户信息
         function getUserInfo() {
+            showLoading('正在验证令牌...');
+            
             fetch('https://api.github.com/user', {
                 headers: {
-                    'Authorization': `token ${accessToken}`
+                    'Authorization': `token ${githubToken}`
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('令牌验证失败');
+                }
+                return response.json();
+            })
             .then(data => {
                 userInfo = {
                     login: data.login,
@@ -893,14 +1153,15 @@
                 };
                 
                 localStorage.setItem('github_user_info', JSON.stringify(userInfo));
-                updateUserUI();
+                updateUI();
                 
                 // 检查是否存在Gist
                 checkGistExists();
             })
             .catch(error => {
                 console.error('获取用户信息失败:', error);
-                showNotification('获取用户信息失败', true);
+                showNotification('令牌无效，请重新输入', true);
+                tokenSection.style.display = 'block';
                 hideLoading();
             });
         }
@@ -910,28 +1171,35 @@
             if (gistId) {
                 // 已有Gist ID，直接加载数据
                 loadDataFromGist();
-            } else {
-                // 搜索用户的Gist
-                fetch(`https://api.github.com/gists?access_token=${accessToken}`)
-                .then(response => response.json())
-                .then(gists => {
-                    const dataGist = gists.find(gist => gist.files[GIST_FILENAME]);
-                    
-                    if (dataGist) {
-                        gistId = dataGist.id;
-                        localStorage.setItem('github_gist_id', gistId);
-                        loadDataFromGist();
-                    } else {
-                        // 创建新的Gist
-                        createNewGist();
-                    }
-                })
-                .catch(error => {
-                    console.error('搜索Gist失败:', error);
-                    showNotification('数据加载失败', true);
-                    hideLoading();
-                });
+                return;
             }
+            
+            showLoading('正在检查数据存储...');
+            
+            // 搜索用户的Gist
+            fetch(`https://api.github.com/gists`, {
+                headers: {
+                    'Authorization': `token ${githubToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(gists => {
+                const dataGist = gists.find(gist => gist.files[GIST_FILENAME]);
+                
+                if (dataGist) {
+                    gistId = dataGist.id;
+                    localStorage.setItem('github_gist_id', gistId);
+                    loadDataFromGist();
+                } else {
+                    // 创建新的Gist
+                    createNewGist();
+                }
+            })
+            .catch(error => {
+                console.error('搜索Gist失败:', error);
+                showNotification('数据加载失败', true);
+                hideLoading();
+            });
         }
         
         // 创建新的Gist
@@ -954,7 +1222,7 @@
             fetch('https://api.github.com/gists', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `token ${accessToken}`,
+                    'Authorization': `token ${githubToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
@@ -972,6 +1240,7 @@
                 hideLoading();
                 showNotification('数据存储已创建');
                 renderAllProductLists();
+                updateSyncStatus('数据存储已创建');
             })
             .catch(error => {
                 console.error('创建Gist失败:', error);
@@ -987,12 +1256,11 @@
                 return;
             }
             
-            showLoading();
-            syncMessage.textContent = '正在从GitHub加载数据...';
+            showLoading('正在从GitHub加载数据...');
             
             fetch(`https://api.github.com/gists/${gistId}`, {
                 headers: {
-                    'Authorization': `token ${accessToken}`
+                    'Authorization': `token ${githubToken}`
                 }
             })
             .then(response => response.json())
@@ -1007,26 +1275,25 @@
                 
                 hideLoading();
                 showNotification('数据加载成功');
-                syncMessage.textContent = '数据已从GitHub加载';
+                updateSyncStatus('数据已从GitHub加载');
                 renderAllProductLists();
             })
             .catch(error => {
                 console.error('加载Gist失败:', error);
                 showNotification('数据加载失败', true);
-                syncMessage.textContent = '数据加载失败';
+                updateSyncStatus('数据加载失败');
                 hideLoading();
             });
         }
         
         // 保存数据到Gist
         function saveDataToGist() {
-            if (!gistId || !accessToken) {
-                showNotification('未登录，无法保存数据', true);
+            if (!gistId || !githubToken) {
+                showNotification('未同步，无法保存数据', true);
                 return;
             }
             
-            showLoading();
-            syncMessage.textContent = '正在保存数据到GitHub...';
+            showLoading('正在保存数据到GitHub...');
             
             const payload = {
                 description: '多店铺商品管理系统数据 - 更新于 ' + new Date().toLocaleString(),
@@ -1040,7 +1307,7 @@
             fetch(`https://api.github.com/gists/${gistId}`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `token ${accessToken}`,
+                    'Authorization': `token ${githubToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
@@ -1049,40 +1316,50 @@
             .then(data => {
                 hideLoading();
                 showNotification('数据保存成功');
-                syncMessage.textContent = '数据已同步到GitHub: ' + new Date().toLocaleTimeString();
+                updateSyncStatus('数据已同步到GitHub: ' + new Date().toLocaleTimeString());
             })
             .catch(error => {
                 console.error('保存Gist失败:', error);
                 showNotification('数据保存失败', true);
-                syncMessage.textContent = '数据同步失败';
+                updateSyncStatus('数据同步失败');
                 hideLoading();
             });
         }
         
-        // 更新用户界面
-        function updateUserUI() {
+        // 更新UI状态
+        function updateUI() {
             if (userInfo) {
-                userAvatar.src = userInfo.avatar_url;
+                if (userInfo.avatar_url) {
+                    userAvatar.src = userInfo.avatar_url;
+                } else {
+                    userAvatar.src = 'https://via.placeholder.com/40';
+                }
                 userName.textContent = userInfo.name;
                 userInfoSection.style.display = 'flex';
                 logoutBtn.style.display = 'block';
+                syncBtn.style.display = 'block';
                 githubLoginBtn.style.display = 'none';
-                syncMessage.textContent = '已连接到GitHub账号: ' + userInfo.login;
+                tokenSection.style.display = 'none';
             } else {
                 userInfoSection.style.display = 'none';
                 logoutBtn.style.display = 'none';
+                syncBtn.style.display = 'none';
                 githubLoginBtn.style.display = 'block';
-                syncMessage.textContent = '未连接GitHub';
             }
         }
         
-        // 退出登录
+        // 更新同步状态
+        function updateSyncStatus(message) {
+            syncMessage.textContent = message;
+        }
+        
+        // 退出同步
         function logout() {
-            accessToken = null;
+            githubToken = null;
             gistId = null;
             userInfo = null;
             
-            localStorage.removeItem('github_access_token');
+            localStorage.removeItem('github_token');
             localStorage.removeItem('github_gist_id');
             localStorage.removeItem('github_user_info');
             
@@ -1091,9 +1368,10 @@
                 products[store.id] = [];
             });
             
-            updateUserUI();
+            updateUI();
             renderAllProductLists();
-            showNotification('已退出登录');
+            updateSyncStatus('未连接到GitHub');
+            showNotification('已退出同步');
         }
         
         // 切换选项卡
@@ -1113,8 +1391,8 @@
         
         // 添加商品
         function addProduct(storeId) {
-            if (!accessToken) {
-                showNotification('请先登录GitHub账号', true);
+            if (!githubToken) {
+                showNotification('请先设置GitHub同步', true);
                 return;
             }
             
@@ -1158,8 +1436,8 @@
         
         // 增加商品数量
         function increaseQuantity(storeId, productId) {
-            if (!accessToken) {
-                showNotification('请先登录GitHub账号', true);
+            if (!githubToken) {
+                showNotification('请先设置GitHub同步', true);
                 return;
             }
             
@@ -1173,8 +1451,8 @@
         
         // 减少商品数量
         function decreaseQuantity(storeId, productId) {
-            if (!accessToken) {
-                showNotification('请先登录GitHub账号', true);
+            if (!githubToken) {
+                showNotification('请先设置GitHub同步', true);
                 return;
             }
             
@@ -1188,8 +1466,8 @@
         
         // 删除商品
         function deleteProduct(storeId, productId) {
-            if (!accessToken) {
-                showNotification('请先登录GitHub账号', true);
+            if (!githubToken) {
+                showNotification('请先设置GitHub同步', true);
                 return;
             }
             
@@ -1225,11 +1503,11 @@
                 <div class="product-item">
                     <div class="product-name">${product.name}</div>
                     <div class="quantity-controls">
-                        <button class="quantity-btn decrease" onclick="increaseQuantity('${storeId}', '${product.id}')">
+                        <button class="quantity-btn decrease" onclick="decreaseQuantity('${storeId}', '${product.id}')">
                             <i class="fas fa-minus"></i>
                         </button>
                         <div class="quantity-display">${product.quantity}</div>
-                        <button class="quantity-btn" onclick="decreaseQuantity('${storeId}', '${product.id}')">
+                        <button class="quantity-btn" onclick="increaseQuantity('${storeId}', '${product.id}')">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -1302,7 +1580,8 @@
         }
         
         // 显示加载动画
-        function showLoading() {
+        function showLoading(message = '正在处理...') {
+            loadingText.textContent = message;
             loadingOverlay.style.display = 'flex';
         }
         
@@ -1318,8 +1597,17 @@
         
         // 初始化数据
         window.onload = function() {
-            // 模拟一些初始数据（实际应用中应从GitHub加载）
-            if (!accessToken) {
+            // 尝试从localStorage加载数据
+            const savedData = localStorage.getItem('local_products');
+            if (savedData) {
+                try {
+                    products = JSON.parse(savedData);
+                    renderAllProductLists();
+                } catch (e) {
+                    console.error('解析本地数据失败', e);
+                }
+            } else {
+                // 初始化内存数据
                 stores.forEach(store => {
                     products[store.id] = [];
                 });
