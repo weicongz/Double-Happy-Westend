@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多店铺商品管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --momo: #ff6b6b;
+            --vegetable: #52b788;
+            --be: #f15bb5;
+            --madfresh: #fee440;
+            --packaging: #00bbf9;
+            --woolworth: #9b5de5;
+            --github: #333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f1 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        
+        .github-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--github);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .github-link:hover {
+            background: #222;
+            transform: translateY(-2px);
+        }
+        
+        header h1 {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .feature-badges {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .badge {
+            background: #e9f5ff;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 140px;
+            justify-content: center;
+        }
+        
+        .tab-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .tab-btn.active {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .momo-btn { background: var(--momo); }
+        .vegetable-btn { background: var(--vegetable); }
+        .be-btn { background: var(--be); }
+        .madfresh-btn { background: var(--madfresh); color: #333; }
+        .packaging-btn { background: var(--packaging); }
+        .woolworth-btn { background: var(--woolworth); }
+        
+        .content {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            min-height: 500px;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .store-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed var(--light-gray);
+        }
+        
+        .store-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .store-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .momo-icon { background: var(--momo); }
+        .vegetable-icon { background: var(--vegetable); }
+        .be-icon { background: var(--be); }
+        .madfresh-icon { background: var(--madfresh); color: #333; }
+        .packaging-icon { background: var(--packaging); }
+        .woolworth-icon { background: var(--woolworth); }
+        
+        .add-product-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .add-product-form input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            min-width: 200px;
+            transition: border-color 0.3s;
+        }
+        
+        .add-product-form input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .add-product-form button {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .add-product-form button:hover {
+            background: #38b2d9;
+        }
+        
+        .product-list {
+            margin-bottom: 30px;
+        }
+        
+        .product-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8fafc;
+            margin-bottom: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .product-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .product-name {
+            flex: 1;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 20px;
+        }
+        
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .quantity-btn.decrease {
+            background: var(--danger);
+        }
+        
+        .quantity-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.1);
+        }
+        
+        .quantity-display {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.3s;
+        }
+        
+        .delete-btn:hover {
+            background: #e1156d;
+        }
+        
+        .generate-section {
+            background: #f1f5f9;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+        
+        .generate-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .generate-btn:hover {
+            background: var(--secondary);
+        }
+        
+        .result-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .result-table.active {
+            display: block;
+        }
+        
+        .table-header {
+            font-weight: 700;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .table-row {
+            display: flex;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .table-cell {
+            flex: 1;
+        }
+        
+        .copy-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .copy-btn:hover {
+            background: #38b2d9;
+        }
+        
+        .no-products {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background: var(--success);
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.error {
+            background: var(--danger);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+                min-width: 120px;
+            }
+            
+            .store-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .add-product-form {
+                flex-direction: column;
+            }
+            
+            .add-product-form input, 
+            .add-product-form button {
+                width: 100%;
+            }
+            
+            .product-item {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .quantity-controls {
+                margin: 0;
+            }
+            
+            .github-link {
+                position: static;
+                margin-top: 15px;
+                display: inline-flex;
+            }
+            
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="#" class="github-link" id="githubLink">
+                <i class="fab fa-github"></i> GitHub 仓库
+            </a>
+            <h1>多店铺商品管理系统</h1>
+            <p>在多个设备上管理不同店铺的商品库存，支持离线使用</p>
+            
+            <div class="feature-badges">
+                <div class="badge"><i class="fas fa-mobile-alt"></i> 手机友好</div>
+                <div class="badge"><i class="fas fa-database"></i> 本地存储</div>
+                <div class="badge"><i class="fas fa-sync-alt"></i> 多设备同步</div>
+                <div class="badge"><i class="fas fa-table"></i> 导出表格</div>
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-btn momo-btn active" data-tab="momo">
+                <i class="fas fa-shopping-cart"></i> MOMO
+            </button>
+            <button class="tab-btn vegetable-btn" data-tab="vegetable">
+                <i class="fas fa-leaf"></i> 蔬菜
+            </button>
+            <button class="tab-btn be-btn" data-tab="be">
+                <i class="fas fa-utensils"></i> B&E
+            </button>
+            <button class="tab-btn madfresh-btn" data-tab="madfresh">
+                <i class="fas fa-apple-alt"></i> Mad Fresh
+            </button>
+            <button class="tab-btn packaging-btn" data-tab="packaging">
+                <i class="fas fa-box"></i> 打包盒
+            </button>
+            <button class="tab-btn woolworth-btn" data-tab="woolworth">
+                <i class="fas fa-store"></i> Woolworth
+            </button>
+        </div>
+        
+        <div class="content">
+            <!-- MOMO 页面 -->
+            <div class="tab-content active" id="momo-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon momo-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h2>MOMO 商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="momo-product-name" placeholder="输入商品名称">
+                    <button id="momo-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="momo-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="momo">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="momo-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="momo-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="momo">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 蔬菜页面 -->
+            <div class="tab-content" id="vegetable-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon vegetable-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h2>蔬菜商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="vegetable-product-name" placeholder="输入商品名称">
+                    <button id="vegetable-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="vegetable-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="vegetable">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="vegetable-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="vegetable-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="vegetable">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- B&E页面 -->
+            <div class="tab-content" id="be-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon be-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h2>B&E 商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="be-product-name" placeholder="输入商品名称">
+                    <button id="be-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="be-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="be">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="be-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="be-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="be">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mad Fresh页面 -->
+            <div class="tab-content" id="madfresh-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon madfresh-icon">
+                            <i class="fas fa-apple-alt"></i>
+                        </div>
+                        <h2>Mad Fresh 商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="madfresh-product-name" placeholder="输入商品名称">
+                    <button id="madfresh-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="madfresh-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="madfresh">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="madfresh-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="madfresh-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="madfresh">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 打包盒页面 -->
+            <div class="tab-content" id="packaging-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon packaging-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h2>打包盒商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="packaging-product-name" placeholder="输入商品名称">
+                    <button id="packaging-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="packaging-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="packaging">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="packaging-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="packaging-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="packaging">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Woolworth页面 -->
+            <div class="tab-content" id="woolworth-tab">
+                <div class="store-header">
+                    <div class="store-title">
+                        <div class="store-icon woolworth-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h2>Woolworth 商品管理</h2>
+                    </div>
+                </div>
+                
+                <div class="add-product-form">
+                    <input type="text" id="woolworth-product-name" placeholder="输入商品名称">
+                    <button id="woolworth-add-btn">
+                        <i class="fas fa-plus"></i> 添加商品
+                    </button>
+                </div>
+                
+                <div class="product-list" id="woolworth-product-list">
+                    <div class="no-products">暂无商品，请添加商品</div>
+                </div>
+                
+                <div class="generate-section">
+                    <button class="generate-btn" data-store="woolworth">
+                        <i class="fas fa-table"></i> 生成订单表格
+                    </button>
+                    
+                    <div class="result-table" id="woolworth-result-table">
+                        <div class="table-header">
+                            <div class="table-row">
+                                <div class="table-cell">商品名称</div>
+                                <div class="table-cell">数量</div>
+                            </div>
+                        </div>
+                        <div id="woolworth-table-content">
+                            <!-- 表格内容将由JavaScript动态生成 -->
+                        </div>
+                        <button class="copy-btn" data-store="woolworth">
+                            <i class="fas fa-copy"></i> 复制表格内容
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>多店铺商品管理系统 &copy; 2023 | 数据存储在本地浏览器中</p>
+            <p>支持离线使用 | 兼容手机和桌面设备</p>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        操作成功！
+    </div>
+
+    <script>
+        // 店铺数据模型
+        const stores = [
+            { id: 'momo', name: 'MOMO', color: '--momo', icon: 'fa-shopping-cart' },
+            { id: 'vegetable', name: '蔬菜', color: '--vegetable', icon: 'fa-leaf' },
+            { id: 'be', name: 'B&E', color: '--be', icon: 'fa-utensils' },
+            { id: 'madfresh', name: 'Mad Fresh', color: '--madfresh', icon: 'fa-apple-alt' },
+            { id: 'packaging', name: '打包盒', color: '--packaging', icon: 'fa-box' },
+            { id: 'woolworth', name: 'Woolworth', color: '--woolworth', icon: 'fa-store' }
+        ];
+        
+        // 初始化商品数据
+        let products = {};
+        let db;
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化所有店铺
+            stores.forEach(store => {
+                products[store.id] = [];
+                
+                // 添加商品事件
+                document.getElementById(`${store.id}-add-btn`).addEventListener('click', function() {
+                    addProduct(store.id);
+                });
+                
+                // 生成表格事件
+                document.querySelector(`.generate-btn[data-store="${store.id}"]`).addEventListener('click', function() {
+                    generateTable(store.id);
+                });
+                
+                // 复制表格事件
+                document.querySelector(`.copy-btn[data-store="${store.id}"]`).addEventListener('click', function() {
+                    copyTableContent(store.id);
+                });
+            });
+            
+            // 选项卡切换事件
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // GitHub链接
+            document.getElementById('githubLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                showNotification('请将代码上传到您的GitHub仓库');
+            });
+            
+            // 初始化数据库
+            initDatabase();
+        });
+        
+        // 初始化IndexedDB
+        function initDatabase() {
+            const request = indexedDB.open('MultiStoreDB', 1);
+            
+            request.onerror = function(event) {
+                console.error('数据库打开失败:', event.target.error);
+                showNotification('数据库初始化失败', true);
+            };
+            
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                loadAllProducts();
+            };
+            
+            request.onupgradeneeded = function(event) {
+                const db = event.target.result;
+                
+                // 为每个店铺创建一个对象存储
+                stores.forEach(store => {
+                    if (!db.objectStoreNames.contains(store.id)) {
+                        const storeOS = db.createObjectStore(store.id, { keyPath: 'id' });
+                        storeOS.createIndex('name', 'name', { unique: true });
+                    }
+                });
+            };
+        }
+        
+        // 加载所有商品
+        function loadAllProducts() {
+            if (!db) return;
+            
+            stores.forEach(store => {
+                const transaction = db.transaction([store.id], 'readonly');
+                const objectStore = transaction.objectStore(store.id);
+                const request = objectStore.getAll();
+                
+                request.onsuccess = function() {
+                    products[store.id] = request.result;
+                    renderProductList(store.id);
+                };
+                
+                request.onerror = function() {
+                    showNotification(`加载${store.name}数据失败`, true);
+                };
+            });
+        }
+        
+        // 保存商品
+        function saveProduct(storeId, product) {
+            if (!db) return;
+            
+            const transaction = db.transaction([storeId], 'readwrite');
+            const objectStore = transaction.objectStore(storeId);
+            
+            const request = objectStore.put(product);
+            
+            request.onsuccess = function() {
+                console.log(`商品已保存: ${product.name}`);
+            };
+            
+            request.onerror = function() {
+                showNotification(`保存商品失败: ${product.name}`, true);
+            };
+        }
+        
+        // 删除商品
+        function deleteProductFromDB(storeId, productId) {
+            if (!db) return;
+            
+            const transaction = db.transaction([storeId], 'readwrite');
+            const objectStore = transaction.objectStore(storeId);
+            
+            const request = objectStore.delete(productId);
+            
+            request.onsuccess = function() {
+                console.log(`商品已删除: ${productId}`);
+            };
+            
+            request.onerror = function() {
+                showNotification('删除商品失败', true);
+            };
+        }
+        
+        // 切换选项卡
+        function switchTab(tabId) {
+            // 更新按钮状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+            
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        }
+        
+        // 添加商品
+        function addProduct(storeId) {
+            const input = document.getElementById(`${storeId}-product-name`);
+            const name = input.value.trim();
+            
+            if (!name) {
+                showNotification('请输入商品名称', true);
+                return;
+            }
+            
+            // 检查是否已存在
+            const exists = products[storeId].some(product => product.name === name);
+            if (exists) {
+                showNotification('该商品已存在', true);
+                return;
+            }
+            
+            // 创建新商品
+            const newProduct = {
+                id: Date.now().toString(),
+                name: name,
+                quantity: 1
+            };
+            
+            // 添加到内存
+            products[storeId].push(newProduct);
+            
+            // 保存到数据库
+            saveProduct(storeId, newProduct);
+            
+            // 重新渲染列表
+            renderProductList(storeId);
+            
+            // 清空输入框
+            input.value = '';
+            input.focus();
+            
+            showNotification('商品添加成功');
+        }
+        
+        // 增加商品数量
+        function increaseQuantity(storeId, productId) {
+            const product = products[storeId].find(p => p.id === productId);
+            if (product) {
+                product.quantity++;
+                saveProduct(storeId, product);
+                renderProductList(storeId);
+            }
+        }
+        
+        // 减少商品数量
+        function decreaseQuantity(storeId, productId) {
+            const product = products[storeId].find(p => p.id === productId);
+            if (product && product.quantity > 1) {
+                product.quantity--;
+                saveProduct(storeId, product);
+                renderProductList(storeId);
+            }
+        }
+        
+        // 删除商品
+        function deleteProduct(storeId, productId) {
+            // 从内存中删除
+            products[storeId] = products[storeId].filter(p => p.id !== productId);
+            
+            // 从数据库中删除
+            deleteProductFromDB(storeId, productId);
+            
+            // 重新渲染列表
+            renderProductList(storeId);
+            
+            showNotification('商品已删除');
+        }
+        
+        // 渲染商品列表
+        function renderProductList(storeId) {
+            const container = document.getElementById(`${storeId}-product-list`);
+            
+            if (!products[storeId] || products[storeId].length === 0) {
+                container.innerHTML = `<div class="no-products">暂无商品，请添加商品</div>`;
+                return;
+            }
+            
+            container.innerHTML = products[storeId].map(product => `
+                <div class="product-item">
+                    <div class="product-name">${product.name}</div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn decrease" onclick="decreaseQuantity('${storeId}', '${product.id}')">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <div class="quantity-display">${product.quantity}</div>
+                        <button class="quantity-btn" onclick="increaseQuantity('${storeId}', '${product.id}')">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <button class="delete-btn" onclick="deleteProduct('${storeId}', '${product.id}')">
+                        <i class="fas fa-trash-alt"></i> 删除
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // 生成表格
+        function generateTable(storeId) {
+            const tableContent = document.getElementById(`${storeId}-table-content`);
+            const resultTable = document.getElementById(`${storeId}-result-table`);
+            
+            if (!products[storeId] || products[storeId].length === 0) {
+                tableContent.innerHTML = `<div class="no-products">没有可显示的商品</div>`;
+                resultTable.classList.add('active');
+                return;
+            }
+            
+            tableContent.innerHTML = products[storeId].map(product => `
+                <div class="table-row">
+                    <div class="table-cell">${product.name}</div>
+                    <div class="table-cell">${product.quantity}</div>
+                </div>
+            `).join('');
+            
+            resultTable.classList.add('active');
+        }
+        
+        // 复制表格内容
+        function copyTableContent(storeId) {
+            if (!products[storeId] || products[storeId].length === 0) {
+                showNotification('没有内容可复制', true);
+                return;
+            }
+            
+            const rows = products[storeId].map(product => 
+                `${product.name}\t${product.quantity}`
+            ).join('\n');
+            
+            const tableContent = `商品名称\t数量\n${rows}`;
+            
+            navigator.clipboard.writeText(tableContent)
+                .then(() => {
+                    showNotification('表格内容已复制到剪贴板');
+                })
+                .catch(err => {
+                    showNotification('复制失败，请重试', true);
+                    console.error('复制失败:', err);
+                });
+        }
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification';
+            
+            if (isError) {
+                notification.classList.add('error');
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 为演示目的初始化一些示例数据
+        window.onload = function() {
+            // 初始化MOMO示例数据
+            if (!localStorage.getItem('dbInitialized')) {
+                setTimeout(() => {
+                    const initialProducts = [
+                        { id: "1", name: "精选牛肉", quantity: 3 },
+                        { id: "2", name: "有机鸡蛋", quantity: 2 },
+                        { id: "3", name: "新鲜牛奶", quantity: 4 }
+                    ];
+                    
+                    initialProducts.forEach(product => {
+                        saveProduct('momo', product);
+                    });
+                    
+                    localStorage.setItem('dbInitialized', 'true');
+                }, 1000);
+            }
+        };
+        
+        // 暴露函数到全局作用域
+        window.increaseQuantity = increaseQuantity;
+        window.decreaseQuantity = decreaseQuantity;
+        window.deleteProduct = deleteProduct;
+    </script>
+</body>
+</html>
