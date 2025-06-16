@@ -43,7 +43,83 @@
             color: var(--dark);
             line-height: 1.6;
         }
-        
+        /* 删除确认模态框 */
+.delete-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+}
+
+.delete-modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.delete-modal h3 {
+    margin-bottom: 20px;
+    color: var(--danger);
+    font-size: 1.5rem;
+}
+
+.password-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid var(--light-gray);
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.password-input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.modal-btn.confirm {
+    background: var(--danger);
+    color: white;
+}
+
+.modal-btn.cancel {
+    background: var(--light-gray);
+    color: var(--dark);
+}
+
+.modal-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -656,7 +732,19 @@
         <div class="spinner"></div>
         <div style="margin-top: 20px; font-weight: 500;" id="loadingText">正在同步数据...</div>
     </div>
-    
+    <!-- 删除确认模态框 -->
+<div class="delete-modal" id="deleteModal">
+    <div class="delete-modal-content">
+        <h3><i class="fas fa-shield-alt"></i> 删除商品确认</h3>
+        <p>您正在尝试删除商品，此操作不可撤销。</p>
+        <p>请输入安全密码以确认删除：</p>
+        <input type="password" class="password-input" id="deletePassword" placeholder="输入密码：960621" maxlength="6">
+        <div class="modal-buttons">
+            <button class="modal-btn confirm" id="confirmDeleteBtn">确认删除</button>
+            <button class="modal-btn cancel" id="cancelDeleteBtn">取消</button>
+        </div>
+    </div>
+</div>
     <div class="container">
         <header>
             <a href="#" class="github-link" id="githubLink">
@@ -1008,6 +1096,20 @@
     </div>
 
     <script>
+        // 删除操作状态
+let pendingDelete = {
+    storeId: null,
+    productId: null
+};
+
+// DOM元素
+const deleteModal = document.getElementById('deleteModal');
+const deletePasswordInput = document.getElementById('deletePassword');
+const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+// 删除密码
+const DELETE_PASSWORD = "960621";
         // 配置信息
         const GIST_FILENAME = 'multi-store-data.json';
         
@@ -1053,7 +1155,28 @@
                 document.getElementById(`${store.id}-add-btn`).addEventListener('click', function() {
                     addProduct(store.id);
                 });
-                
+                // 删除确认按钮事件
+confirmDeleteBtn.addEventListener('click', function() {
+    const password = deletePasswordInput.value;
+    if (password === DELETE_PASSWORD) {
+        // 密码正确，执行删除
+        deleteProduct(pendingDelete.storeId, pendingDelete.productId);
+        deleteModal.style.display = 'none';
+        deletePasswordInput.value = '';
+    } else {
+        // 密码错误
+        showNotification('密码错误，删除操作被取消', true);
+        deletePasswordInput.value = '';
+        deletePasswordInput.focus();
+    }
+});
+
+// 取消删除按钮事件
+cancelDeleteBtn.addEventListener('click', function() {
+    deleteModal.style.display = 'none';
+    deletePasswordInput.value = '';
+    showNotification('删除操作已取消');
+});
                 // 生成表格事件
                 document.querySelector(`.generate-btn[data-store="${store.id}"]`).addEventListener('click', function() {
                     generateTable(store.id);
@@ -1504,13 +1627,19 @@
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
-                    <button class="delete-btn" onclick="deleteProduct('${storeId}', '${product.id}')">
+                    <button class="delete-btn" onclick="requestDeleteProduct('${storeId}', '${product.id}')">
                         <i class="fas fa-trash-alt"></i> 删除
                     </button>
                 </div>
             `).join('');
         }
-        
+        // 请求删除商品（弹出密码输入框）
+function requestDeleteProduct(storeId, productId) {
+    pendingDelete.storeId = storeId;
+    pendingDelete.productId = productId;
+    deleteModal.style.display = 'flex';
+    deletePasswordInput.focus();
+}
         // 生成表格
         function generateTable(storeId) {
             const tableContent = document.getElementById(`${storeId}-table-content`);
@@ -1587,6 +1716,7 @@
         window.increaseQuantity = increaseQuantity;
         window.decreaseQuantity = decreaseQuantity;
         window.deleteProduct = deleteProduct;
+        window.requestDeleteProduct = requestDeleteProduct;
         
         // 初始化数据
         window.onload = function() {
