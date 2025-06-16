@@ -1642,47 +1642,53 @@ function requestDeleteProduct(storeId, productId) {
 }
         // 生成表格
         function generateTable(storeId) {
-            const tableContent = document.getElementById(`${storeId}-table-content`);
-            const resultTable = document.getElementById(`${storeId}-result-table`);
-            
-            if (!products[storeId] || products[storeId].length === 0) {
-                tableContent.innerHTML = `<div class="no-products">没有可显示的商品</div>`;
-                resultTable.classList.add('active');
-                return;
-            }
-            
-            tableContent.innerHTML = products[storeId].map(product => `
-                <div class="table-row">
-                    <div class="table-cell">${product.name}</div>
-                    <div class="table-cell">${product.quantity}</div>
-                </div>
-            `).join('');
-            
-            resultTable.classList.add('active');
-        }
+    const tableContent = document.getElementById(`${storeId}-table-content`);
+    const resultTable = document.getElementById(`${storeId}-result-table`);
+    
+    // 始终过滤掉数量为0的商品，无论复选框状态如何
+    let displayProducts = products[storeId].filter(p => p.quantity > 0);
+    
+    if (displayProducts.length === 0) {
+        tableContent.innerHTML = `<div class="no-products">没有数量大于0的商品</div>`;
+        resultTable.classList.add('active');
+        return;
+    }
+    
+    tableContent.innerHTML = displayProducts.map(product => `
+        <div class="table-row">
+            <div class="table-cell">${product.name}</div>
+            <div class="table-cell">${product.quantity}</div>
+        </div>
+    `).join('');
+    
+    resultTable.classList.add('active');
+}
         
         // 复制表格内容
-        function copyTableContent(storeId) {
-            if (!products[storeId] || products[storeId].length === 0) {
-                showNotification('没有内容可复制', true);
-                return;
-            }
-            
-            const rows = products[storeId].map(product => 
-                `${product.name}\t${product.quantity}`
-            ).join('\n');
-            
-            const tableContent = `商品名称\t数量\n${rows}`;
-            
-            navigator.clipboard.writeText(tableContent)
-                .then(() => {
-                    showNotification('表格内容已复制到剪贴板');
-                })
-                .catch(err => {
-                    showNotification('复制失败，请重试', true);
-                    console.error('复制失败:', err);
-                });
-        }
+       function copyTableContent(storeId) {
+    // 始终过滤掉数量为0的商品
+    let displayProducts = products[storeId].filter(p => p.quantity > 0);
+    
+    if (displayProducts.length === 0) {
+        showNotification('没有内容可复制', true);
+        return;
+    }
+    
+    const rows = displayProducts.map(product => 
+        `${product.name}\t${product.quantity}`
+    ).join('\n');
+    
+    const tableContent = `商品名称\t数量\n${rows}`;
+    
+    navigator.clipboard.writeText(tableContent)
+        .then(() => {
+            showNotification('表格内容已复制到剪贴板');
+        })
+        .catch(err => {
+            showNotification('复制失败，请重试', true);
+            console.error('复制失败:', err);
+        });
+}
         
         // 显示通知
         function showNotification(message, isError = false) {
